@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "untitled",
+  "version": "1.0-SNAPSHOT",
+  "name": "untitled",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "All-Rights-Reserved",
+  "icon": "assets/untitled/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "com.dev.client.untitledClient"
+    ],
+    "main": [
+      "com.dev.untitled"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.14",
+    "fabric": "*",
+    "minecraft": "1.20.1"
+  }
+}
