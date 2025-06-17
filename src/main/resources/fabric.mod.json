@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "untitled",
   "version": "${version}",
-  "name": "untitled",
+  "name": "Untitled",
   "description": "",
   "authors": [],
   "contact": {},
@@ -11,12 +11,15 @@
   "environment": "*",
   "entrypoints": {
     "client": [
-      "com.dev.untitled"
+      "com.dev.Main"
     ]
   },
   "depends": {
     "fabricloader": ">=${loader_version}",
     "fabric": "*",
     "minecraft": "${minecraft_version}"
-  }
+  },
+  "mixins": [
+    "untitled.mixin.json"
+  ]
 }
