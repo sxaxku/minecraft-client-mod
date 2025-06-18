@@ -14,6 +14,17 @@ public class ScrolledWindow extends AbstractMElement {
     private final float scrollSpeed = 0.2f; // Увеличил для чуть более быстрой реакции
     private final float scrollSensitivity = 1f; // Чувствительность прокрутки
 
+    @Override
+    public <T extends MElement> T copy() {
+        ScrolledWindow copied = new ScrolledWindow(x, y, width, height, elementHeight, color);
+
+        for (MElement element : children) {
+            copied.children.add(element.copy());
+        }
+
+        return (T) copied;
+    }
+
     public ScrolledWindow(int x, int y, int width, int height, int elementHeight, int color) {
         this.x = x;
         this.y = y;
@@ -72,12 +83,15 @@ public class ScrolledWindow extends AbstractMElement {
 
             drawer.enableScissor(x, y, width, height);
 
+            int MHeight = elementHeight - 5;
+
             drawer.setPosition(x + 5, elementY);
-            drawer.setSize(width - 10, elementHeight - 5);
+            drawer.setSize(width - 10, MHeight);
 
             element.setPosition(x + 5, elementY);
-            element.setSize(width - 10, elementHeight - 5);
+            element.setSize(width - 10, MHeight);
 
+            element.beforeRenderer(context, mouseX, mouseY, delta);
             element.render(context, mouseX, mouseY, delta);
 
             drawer.disableScissor();

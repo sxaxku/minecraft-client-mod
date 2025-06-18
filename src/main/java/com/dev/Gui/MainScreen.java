@@ -3,8 +3,8 @@ package com.dev.Gui;
 import com.dev.Drawer;
 import com.dev.Gui.Elements.ElementManager;
 import com.dev.Gui.Elements.MElement;
-import com.dev.Gui.Elements.impl.ScrolledWindow;
-import com.dev.Gui.Elements.impl.ToggleButton;
+import com.dev.Gui.Elements.impl.*;
+import com.dev.Modules.ModuleManager;
 import com.dev.Untitled;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Element;
@@ -14,18 +14,31 @@ import org.apache.commons.compress.utils.Lists;
 
 import java.awt.*;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class MainScreen extends Screen {
-    private final List<MElement> children = Lists.newArrayList();
+    private final CopyOnWriteArrayList<MElement> children = new CopyOnWriteArrayList<>();
     private boolean isVisible;
     private final Drawer drawer;
     private Integer xScreen, yScreen, widthScreen, heightScreen;
-    private String selectedCategory; // Переменная для хранения выбранной категории
-    private final List<ToggleButton> categoryButtons = Lists.newArrayList(); // Список кнопок категорий
+
+    private List<Category> categories = Lists.newArrayList();
+    public final Category combat = new Category("Combat");
+    public final Category render = new Category("Render");
+    public final Category player = new Category("Player");
+    private Category selectedCategory;
+    private CategoryButton selectedCategoryButton;
+
 
     public MainScreen() {
         super(Text.of("Gui"));
         drawer = Drawer.getInstance();
+
+        categories.addAll(List.of(
+                combat, render, player
+        ));
+
         selectedCategory = null; // Изначально категория не выбрана
     }
 
@@ -37,13 +50,35 @@ public class MainScreen extends Screen {
         return this.drawer;
     }
 
-    public String getSelectedCategory() {
+    public Category getSelectedCategory() {
         return selectedCategory;
+    }
+
+    public CategoryButton getSelectedCategoryButton() {
+        return selectedCategoryButton;
+    }
+
+    public void methodForTestRunnable1() {
+
+    }
+
+    public void methodForTestRunnable2() {
+
+    }
+
+    public void methodForTestRunnable3() {
+
+    }
+
+    public void methodForTestRunnable4() {
+
     }
 
     @Override
     public void onDisplayed() {
         init();
+        children.clear();
+        ModuleManager.init();
 
         int backgroundColor = new Color(0, 0, 0, 32).getRGB();
         int guiBackgroundColor = new Color(32, 32, 32, 255).getRGB();
@@ -53,17 +88,13 @@ public class MainScreen extends Screen {
 
         ScrolledWindow scrolledWindow = new ScrolledWindow(
                 xScreen + 5, yScreen + 5,
-                80, heightScreen - 10, 20,
+                80, heightScreen - 60, 20,
                 new Color(44, 44, 44, 255).getRGB()
         );
 
-        this.add(scrolledWindow);
-
-        // Создаем кнопки для категорий
-        String[] categories = {"Combat", "Render", "Player"};
-        for (String category : categories) {
+        for (Category category : categories) {
             ToggleButton categoryButton = ElementManager.createToggleButton(
-                    category,
+                    category.getName(),
                     xScreen + 5,
                     yScreen + 5,
                     80, 20,
@@ -72,55 +103,86 @@ public class MainScreen extends Screen {
                     new Color(68, 68, 68, 255).getRGB()
             );
 
-            // Добавляем обработчик клика
+            if (getSelectedCategory() != null && Objects.equals(getSelectedCategory().getName(), category.getName())) {
+                categoryButton.setToggled(true);
+            }
+
+            category.setButton(categoryButton);
+
             categoryButton.setMethodOnClick(() -> {
-                // Если эта кнопка уже выбрана, снимаем выбор
-                if (selectedCategory != null && selectedCategory.equals(category)) {
-                    categoryButton.setToggled(false);
-                    selectedCategory = null;
-                } else {
-                    // Отключаем все другие кнопки
-                    for (ToggleButton btn : categoryButtons) {
-                        if (btn != categoryButton) {
-                            btn.setToggled(false);
-                        }
+                if (getSelectedCategory() != null) {
+                    getSelectedCategory().setSelected(false);
+                    getSelectedCategory().getButton().setToggled(false);
+                    if (getSelectedCategory() == category) {
+                        selectedCategory = null;
+
+                        onDisplayed();
+                        return;
                     }
-                    // Устанавливаем текущую категорию
-                    categoryButton.setToggled(true);
-                    selectedCategory = category;
                 }
+
+                selectedCategoryButton = null;
+                selectedCategory = category;
+                selectedCategory.setSelected(true);
+                selectedCategory.getButton().setToggled(true);
+
+                onDisplayed();
             });
 
-            categoryButtons.add(categoryButton);
             scrolledWindow.addElement(categoryButton);
         }
 
+        this.add(scrolledWindow);
 
-
-        scrolledWindow =  new ScrolledWindow(
-                xScreen + 5 + 80 + 5, yScreen + 5,
-                80, 40, 20,
-                new Color(44, 44, 44, 255).getRGB()
-        );
-
-        for(int i = 0; i <= 0; i++) {
-            ToggleButton tb = ElementManager.createToggleButton(
-                    "Button" + i,
-                    xScreen + 5,
-                    yScreen + 5,
-                    80, 20,
-                    new Color(52, 52, 52, 255).getRGB(),
-                    new Color(60, 60, 60, 255).getRGB(),
-                    new Color(68, 68, 68, 255).getRGB()
+        if (getSelectedCategory() != null) {
+            ScrolledWindow categoryScrolledWindow = new ScrolledWindow(
+                    xScreen + 5 + 80 + 5, yScreen + 5,
+                    80, heightScreen - 60, 20,
+                    new Color(44, 44, 44, 255).getRGB()
             );
 
-            tb.setMethodOnClick(() -> {
+            for (CategoryButton button : getSelectedCategory().getButtons()) {
+                categoryScrolledWindow.addElement(button);
+                button.setRunnableOnSettingToggle(() -> {
 
-            });
+                    if (selectedCategoryButton == null) {
+                        selectedCategoryButton = button;
+                        button.setSettingsOpenStatus(true);
+                    } else {
+                        if (Objects.equals(selectedCategoryButton.getName(), button.getName())) {
+                            button.setSettingsOpenStatus(false);
+                            selectedCategoryButton = null;
+                        } else {
+                            selectedCategoryButton.setSettingsOpenStatus(false);
+                            selectedCategoryButton = button;
+                        }
+                    }
 
-            scrolledWindow.addElement(tb);
+                    onDisplayed();
+                });
+            }
+
+            this.add(categoryScrolledWindow);
+
+            if (getSelectedCategoryButton() != null && getSelectedCategoryButton().settingsIsOpened()) {
+                MWindow settingWindow = ElementManager.createWindow(
+                        xScreen + 5, yScreen + heightScreen - 50,
+                        165, 45,
+                        new Color(44, 44, 44, 255).getRGB()
+                );
+
+                this.add(settingWindow);
+
+                for (Setting elementX : getSelectedCategoryButton().getSettings()) {
+                    MElement element = elementX.getSettingElement();
+                    int elX = element.getX();
+                    int elY = element.getY();
+                    element.setPosition(element.getX() + xScreen + 5, element.getY() + yScreen + heightScreen - 50);
+
+                    this.add(element);
+                }
+            }
         }
-
 
         isVisible = true;
     }
@@ -131,8 +193,6 @@ public class MainScreen extends Screen {
 
         isVisible = false;
         children.clear();
-        categoryButtons.clear();
-        selectedCategory = null;
     }
 
     public final void add(MElement element) {
@@ -174,6 +234,7 @@ public class MainScreen extends Screen {
             drawer.setPosition(element.getX(), element.getY());
             drawer.setSize(element.getWidth(), element.getHeight());
 
+            element.beforeRenderer(context, mouseX, mouseY, delta);
             element.render(context, mouseX, mouseY, delta);
 
             drawer.pop();
@@ -207,7 +268,7 @@ public class MainScreen extends Screen {
     }
 
     @Override
-    public List<? extends Element> children() {
+    public CopyOnWriteArrayList<? extends Element> children() {
         return this.children;
     }
 }

@@ -1,27 +1,38 @@
 package com.dev.Gui.Elements.impl;
 
 import com.dev.Drawer;
+import com.dev.Gui.Elements.AbstractMElement;
 import com.dev.Gui.Elements.MElement;
 import com.dev.Untitled;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.Element;
+import org.apache.commons.compress.utils.Lists;
+import org.jetbrains.annotations.Nullable;
+import org.lwjgl.glfw.GLFW;
 
 import java.awt.*;
+import java.util.List;
 
-public class ToggleButton implements MElement {
+public class CategoryButton extends AbstractMElement {
     private final String name;
     private int x, y, width, height, color, hoveredColor, toggledColor;
-    private boolean toggled;
-    private Runnable methodOnClick;
+    private boolean toggled, settingsIsOpened;
+    private Runnable onToggling, onSettingsToggling;
+
+    private final List<Setting> settings;
 
     @Override
     public <T extends MElement> T copy() {
-        ToggleButton copied = new ToggleButton(name, x, y, width, height, color, hoveredColor, toggledColor);
-        copied.setMethodOnClick(methodOnClick);
-        copied.setToggled(toggled);
+        CategoryButton copied = new CategoryButton(name, x, y, width, height, color, hoveredColor, toggledColor);
+        copied.setRunnableOnToggle(onToggling);
+        copied.setRunnableOnSettingToggle(onSettingsToggling);
+        for (Setting setting : settings) {
+            copied.addSetting(setting);
+        }
         return (T) copied;
     }
 
-    public ToggleButton(String name, int x, int y, int width, int height, int color, int hoveredColor, int toggledColor) {
+    public CategoryButton(String name, int x, int y, int width, int height, int color, int hoveredColor, int toggledColor) {
         this.name = name;
         this.x = x;
         this.y = y;
@@ -31,11 +42,33 @@ public class ToggleButton implements MElement {
         this.hoveredColor = hoveredColor;
         this.toggledColor = toggledColor;
 
+        this.settings = Lists.newArrayList();
         this.toggled = false;
+        this.settingsIsOpened = false;
     }
 
-    public final void setMethodOnClick(Runnable runnable) {
-        this.methodOnClick = runnable;
+        public final void addSetting(Setting element) {
+        settings.add(element);
+    }
+
+        public final List<Setting> getSettings() {
+        return this.settings;
+    }
+
+    public final boolean settingsIsOpened() {
+        return this.settingsIsOpened;
+    }
+
+    public final void setSettingsOpenStatus(boolean settingsIsOpened) {
+        this.settingsIsOpened = settingsIsOpened;
+    }
+
+    public final void setRunnableOnToggle(Runnable runnable) {
+        this.onToggling = runnable;
+    }
+
+    public final void setRunnableOnSettingToggle(Runnable runnable) {
+        this.onSettingsToggling = runnable;
     }
 
     public final void setToggled(boolean toggled) {
@@ -72,28 +105,34 @@ public class ToggleButton implements MElement {
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (isMouseOver(mouseX, mouseY)) {
-            setToggled(!toggled);
-            if (methodOnClick != null) methodOnClick.run();
+            if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+                this.toggled = !this.toggled;
+                if (onToggling != null) onToggling.run();
+            } else if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
+                this.settingsIsOpened = !this.settingsIsOpened;
+                if (onSettingsToggling != null) onSettingsToggling.run();
+            }
+
             return true;
         }
 
-        return false;
+        return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
+    public @Nullable Element getFocused() {
+        return null;
+    }
+
+    @Override
+    public void setFocused(@Nullable Element focused) {
+
     }
 
     @Override
     public boolean isMouseOver(double mouseX, double mouseY) {
         return mouseX >= x && mouseX <= x + width &&
                 mouseY >= y && mouseY <= y + height;
-    }
-
-    @Override
-    public void setFocused(boolean focused) {
-
-    }
-
-    @Override
-    public boolean isFocused() {
-        return false;
     }
 
     @Override

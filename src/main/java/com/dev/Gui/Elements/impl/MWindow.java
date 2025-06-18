@@ -8,6 +8,14 @@ import net.minecraft.client.gui.DrawContext;
 public class MWindow implements MElement {
     private int x, y, width, height, color;
 
+
+    @Override
+    public <T extends MElement> T copy() {
+        MWindow copied = new MWindow(x, y, width, height, color);
+
+        return (T) copied;
+    }
+
      public MWindow(int x, int y, int width, int height, int color) {
 
          this.x = x;
