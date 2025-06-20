@@ -152,6 +152,10 @@ public class Drawer {
         context.enableScissor(x, y, x + width, y + height);
     }
 
+    public final void drawRect(int x, int y, int width, int height, int color) {
+        context.fill(x, y, x + width, y + height, color);
+    }
+
     public final void drawRect(int color) {
         context.fill(x, y, x + width, y + height, color);
     }

@@ -7,9 +7,9 @@ public class ModuleManager {
     public static Module moduleX;
 
     public static void init() {
-        Untitled.getInstance().guiScreen.combat.clear();
-        Untitled.getInstance().guiScreen.render.clear();
-        Untitled.getInstance().guiScreen.player.clear();
+//        Untitled.getInstance().guiScreen.combat.clear();
+//        Untitled.getInstance().guiScreen.render.clear();
+//        Untitled.getInstance().guiScreen.player.clear();
 
         moduleX = new ModuleX();
     }

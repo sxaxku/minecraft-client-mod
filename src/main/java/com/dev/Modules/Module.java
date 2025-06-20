@@ -2,8 +2,9 @@ package com.dev.Modules;
 
 import com.dev.Gui.Elements.MElement;
 import com.dev.Gui.Elements.impl.CategoryButton;
-import com.dev.Gui.Elements.impl.Setting;
+import com.dev.Modules.Settings.Setting;
 import com.dev.Untitled;
+import net.minecraft.client.MinecraftClient;
 
 import java.awt.*;
 
@@ -12,7 +13,14 @@ public abstract class Module {
     private final String name;
     private final CategoryButton categoryButton;
 
+    protected final Untitled instance;
+    protected final MinecraftClient mc;
+
     public Module(Category category, String name) {
+        this.instance = Untitled.getInstance();
+        this.mc = instance.mc;
+
+
         this.category = category;
         this.name = name;
 
@@ -26,18 +34,18 @@ public abstract class Module {
 
         categoryButton.setRunnableOnToggle(() -> {
             if (categoryButton.isToggled()) {
-                // event manager reg
+                Untitled.getInstance().eventManager.register(this);
                 onEnable();
             } else {
-                // ev manager unreg
+                Untitled.getInstance().eventManager.unregister(this);
                 onDisable();
             }
         });
 
         switch (category) {
-            case COMBAT -> Untitled.getInstance().guiScreen.combat.addButton(categoryButton);
-            case RENDER -> Untitled.getInstance().guiScreen.render.addButton(categoryButton);
-            case PLAYER -> Untitled.getInstance().guiScreen.player.addButton(categoryButton);
+//            case COMBAT -> Untitled.getInstance().guiScreen.combat.addButton(categoryButton);
+//            case RENDER -> Untitled.getInstance().guiScreen.render.addButton(categoryButton);
+//            case PLAYER -> Untitled.getInstance().guiScreen.player.addButton(categoryButton);
             default -> throw new RuntimeException("Unknown category: " + category.toString());
         }
     }
@@ -45,8 +53,8 @@ public abstract class Module {
     protected abstract void onEnable();
     protected abstract void onDisable();
 
-    public final void addSetting(MElement element) {
-        categoryButton.addSetting(new Setting(element));
+    public final void addSetting(Setting setting) {
+        categoryButton.addSetting(setting.getGuiSettingElement());
     }
 
     public final Category getCategory() {

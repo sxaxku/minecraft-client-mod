@@ -1,210 +1,50 @@
 package com.dev.Gui;
 
-import com.dev.Drawer;
-import com.dev.Gui.Elements.ElementManager;
 import com.dev.Gui.Elements.MElement;
-import com.dev.Gui.Elements.impl.*;
-import com.dev.Modules.ModuleManager;
+import com.dev.Gui.elements.AbstractElement;
+import com.dev.Gui.elements.EZElement;
 import com.dev.Untitled;
+import com.google.common.collect.Lists;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
-import org.apache.commons.compress.utils.Lists;
 
 import java.awt.*;
 import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.CopyOnWriteArrayList;
 
-public class MainScreen extends Screen {
-    private final CopyOnWriteArrayList<MElement> children = new CopyOnWriteArrayList<>();
+public final class MainScreen extends Screen {
     private boolean isVisible;
-    private final Drawer drawer;
-    private Integer xScreen, yScreen, widthScreen, heightScreen;
 
-    private List<Category> categories = Lists.newArrayList();
-    public final Category combat = new Category("Combat");
-    public final Category render = new Category("Render");
-    public final Category player = new Category("Player");
-    private Category selectedCategory;
-    private CategoryButton selectedCategoryButton;
+    private Untitled instance;
+    private MinecraftClient mc;
 
+    private List<AbstractElement> elements;
+
+    private int xScreen, yScreen, widthScreen, heightScreen;
 
     public MainScreen() {
-        super(Text.of("Gui"));
-        drawer = Drawer.getInstance();
-
-        categories.addAll(List.of(
-                combat, render, player
-        ));
-
-        selectedCategory = null; // Изначально категория не выбрана
+        super(Text.of(""));
     }
 
-    public final boolean isVisible() {
-        return this.isVisible;
+    public void addElement(AbstractElement element) {
+        elements.add(element);
     }
 
-    public final Drawer getDrawer() {
-        return this.drawer;
+    public void clear() {
+        elements.clear();
     }
 
-    public Category getSelectedCategory() {
-        return selectedCategory;
-    }
+    public void Initialize() {
+        instance = Untitled.getInstance();
+        mc = MinecraftClient.getInstance();
 
-    public CategoryButton getSelectedCategoryButton() {
-        return selectedCategoryButton;
-    }
+        elements = Lists.newArrayList();
 
-    public void methodForTestRunnable1() {
-
-    }
-
-    public void methodForTestRunnable2() {
-
-    }
-
-    public void methodForTestRunnable3() {
-
-    }
-
-    public void methodForTestRunnable4() {
-
-    }
-
-    @Override
-    public void onDisplayed() {
-        init();
-        children.clear();
-        ModuleManager.init();
-
-        int backgroundColor = new Color(0, 0, 0, 32).getRGB();
-        int guiBackgroundColor = new Color(32, 32, 32, 255).getRGB();
-
-        this.add(ElementManager.createWindow(0, 0, super.width, super.height, backgroundColor));
-        this.add(ElementManager.createWindow(xScreen, yScreen, widthScreen, heightScreen, guiBackgroundColor));
-
-        ScrolledWindow scrolledWindow = new ScrolledWindow(
-                xScreen + 5, yScreen + 5,
-                80, heightScreen - 60, 20,
-                new Color(44, 44, 44, 255).getRGB()
-        );
-
-        for (Category category : categories) {
-            ToggleButton categoryButton = ElementManager.createToggleButton(
-                    category.getName(),
-                    xScreen + 5,
-                    yScreen + 5,
-                    80, 20,
-                    new Color(52, 52, 52, 255).getRGB(),
-                    new Color(60, 60, 60, 255).getRGB(),
-                    new Color(68, 68, 68, 255).getRGB()
-            );
-
-            if (getSelectedCategory() != null && Objects.equals(getSelectedCategory().getName(), category.getName())) {
-                categoryButton.setToggled(true);
-            }
-
-            category.setButton(categoryButton);
-
-            categoryButton.setMethodOnClick(() -> {
-                if (getSelectedCategory() != null) {
-                    getSelectedCategory().setSelected(false);
-                    getSelectedCategory().getButton().setToggled(false);
-                    if (getSelectedCategory() == category) {
-                        selectedCategory = null;
-
-                        onDisplayed();
-                        return;
-                    }
-                }
-
-                selectedCategoryButton = null;
-                selectedCategory = category;
-                selectedCategory.setSelected(true);
-                selectedCategory.getButton().setToggled(true);
-
-                onDisplayed();
-            });
-
-            scrolledWindow.addElement(categoryButton);
-        }
-
-        this.add(scrolledWindow);
-
-        if (getSelectedCategory() != null) {
-            ScrolledWindow categoryScrolledWindow = new ScrolledWindow(
-                    xScreen + 5 + 80 + 5, yScreen + 5,
-                    80, heightScreen - 60, 20,
-                    new Color(44, 44, 44, 255).getRGB()
-            );
-
-            for (CategoryButton button : getSelectedCategory().getButtons()) {
-                categoryScrolledWindow.addElement(button);
-                button.setRunnableOnSettingToggle(() -> {
-
-                    if (selectedCategoryButton == null) {
-                        selectedCategoryButton = button;
-                        button.setSettingsOpenStatus(true);
-                    } else {
-                        if (Objects.equals(selectedCategoryButton.getName(), button.getName())) {
-                            button.setSettingsOpenStatus(false);
-                            selectedCategoryButton = null;
-                        } else {
-                            selectedCategoryButton.setSettingsOpenStatus(false);
-                            selectedCategoryButton = button;
-                        }
-                    }
-
-                    onDisplayed();
-                });
-            }
-
-            this.add(categoryScrolledWindow);
-
-            if (getSelectedCategoryButton() != null && getSelectedCategoryButton().settingsIsOpened()) {
-                MWindow settingWindow = ElementManager.createWindow(
-                        xScreen + 5, yScreen + heightScreen - 50,
-                        165, 45,
-                        new Color(44, 44, 44, 255).getRGB()
-                );
-
-                this.add(settingWindow);
-
-                for (Setting elementX : getSelectedCategoryButton().getSettings()) {
-                    MElement element = elementX.getSettingElement();
-                    int elX = element.getX();
-                    int elY = element.getY();
-                    element.setPosition(element.getX() + xScreen + 5, element.getY() + yScreen + heightScreen - 50);
-
-                    this.add(element);
-                }
-            }
-        }
-
-        isVisible = true;
-    }
-
-    @Override
-    public void close() {
-        Untitled.getInstance().mc.setScreen(null);
-
-        isVisible = false;
-        children.clear();
-    }
-
-    public final void add(MElement element) {
-        children.add(element);
-    }
-
-    @Override
-    protected void init() {
         float baseWidth = 300;
         float baseHeight = 200;
-        int screenWidth = Untitled.getInstance().mc.getWindow().getScaledWidth();
-        int screenHeight = Untitled.getInstance().mc.getWindow().getScaledHeight();
+        int screenWidth = mc.getWindow().getScaledWidth();
+        int screenHeight = mc.getWindow().getScaledHeight();
         float scaleFactor = Math.min(screenWidth / 854f, screenHeight / 480f);
         int width = Math.round(baseWidth * scaleFactor);
         int height = Math.round(baseHeight * scaleFactor);
@@ -215,60 +55,117 @@ public class MainScreen extends Screen {
         yScreen = y;
         widthScreen = width;
         heightScreen = height;
-
-        drawer.setPosition(xScreen, yScreen);
-        drawer.setSize(widthScreen, heightScreen);
     }
 
-    @Override
-    public void renderBackground(DrawContext context) {
+    public void UpdateElements() {
+        Initialize();
+
+        EZElement.background(xScreen, yScreen, widthScreen, heightScreen, new Color(50, 50, 50, 255).getRGB());
     }
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        drawer.setContext(context);
+        instance.drawer.setContext(context);
+        instance.drawer.setPosition(0, 0);
+        instance.drawer.setSize(width, height);
+        instance.drawer.push();
+        for (AbstractElement element : elements) {
+            if (!element.canDraw()) {
+                instance.LOGGER.warn("Element " + element.toString() + " don't drawn !");
+                //System.out.println(element.getX() != -1 && element.getY() != -1 && element.getWidth() != -1 && element.getHeight() != -1);
+                continue;
+            } else if (!element.isVisible()) continue;
 
-        for (MElement element : children) {
-            drawer.push();
+            instance.drawer.setPosition(element.getX(), element.getY());
+            instance.drawer.setSize(element.getWidth(), element.getHeight());
 
-            drawer.setPosition(element.getX(), element.getY());
-            drawer.setSize(element.getWidth(), element.getHeight());
-
-            element.beforeRenderer(context, mouseX, mouseY, delta);
+            element.beforeRender(context, mouseX, mouseY, delta);
             element.render(context, mouseX, mouseY, delta);
-
-            drawer.pop();
+            element.afterRender(context, mouseX, mouseY, delta);
         }
+        instance.drawer.pop();
     }
 
     @Override
+    public void onDisplayed() {
+        UpdateElements();
+        isVisible = true;
+    }
+
+    @Override
+    public void close() {
+        isVisible = false;
+        mc.setScreen(null);
+    }
+
+    public boolean isVisible() {
+        return this.isVisible;
+    }
+
+
+
+    @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        return (isVisible && super.mouseClicked(mouseX, mouseY, button));
+        for (AbstractElement element : elements) {
+            if (element.mouseClicked(mouseX, mouseY, button)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        return isVisible && super.mouseReleased(mouseX, mouseY, button);
+        for (AbstractElement element : elements) {
+            if (element.mouseReleased(mouseX, mouseY, button)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
-        return isVisible && super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
+        for (AbstractElement element : elements) {
+            if (element.mouseDragged(mouseX, mouseY, button, deltaX, deltaY)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
-        return isVisible && super.mouseScrolled(mouseX, mouseY, amount);
+        for (AbstractElement element : elements) {
+            if (element.mouseScrolled(mouseX, mouseY, amount)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
-    public void tick() {
-        if (!isVisible) return;
-        super.tick();
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (keyCode == 256) {
+            this.close();
+            return true;
+        }
+        for (AbstractElement element : elements) {
+            if (element.keyPressed(keyCode, scanCode, modifiers)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
-    public CopyOnWriteArrayList<? extends Element> children() {
-        return this.children;
+    public boolean keyReleased(int keyCode, int scanCode, int modifiers) {
+        for (AbstractElement element : elements) {
+            if (element.keyReleased(keyCode, scanCode, modifiers)) {
+                return true;
+            }
+        }
+        return false;
     }
+
 }

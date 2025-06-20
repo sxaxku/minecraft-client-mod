@@ -19,14 +19,14 @@ public class CategoryButton extends AbstractMElement {
     private boolean toggled, settingsIsOpened;
     private Runnable onToggling, onSettingsToggling;
 
-    private final List<Setting> settings;
+    private final List<MElement> settings;
 
     @Override
     public <T extends MElement> T copy() {
         CategoryButton copied = new CategoryButton(name, x, y, width, height, color, hoveredColor, toggledColor);
         copied.setRunnableOnToggle(onToggling);
         copied.setRunnableOnSettingToggle(onSettingsToggling);
-        for (Setting setting : settings) {
+        for (MElement setting : settings) {
             copied.addSetting(setting);
         }
         return (T) copied;
@@ -47,11 +47,11 @@ public class CategoryButton extends AbstractMElement {
         this.settingsIsOpened = false;
     }
 
-        public final void addSetting(Setting element) {
+        public final void addSetting(MElement element) {
         settings.add(element);
     }
 
-        public final List<Setting> getSettings() {
+        public final List<MElement> getSettings() {
         return this.settings;
     }
 
